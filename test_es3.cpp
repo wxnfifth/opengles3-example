@@ -5,6 +5,7 @@
 #include <GLES3/gl3.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include <opencv2/opencv.hpp>
 
 
 #ifndef FALSE
@@ -119,11 +120,12 @@ EGLBoolean WinCreate(EGLNativeWindowType& nativeWindow)
 
 EGLBoolean initializeWindow(EGLNativeWindowType nativeWindow,
                             EGLDisplay& display,
-                            EGLSurface& eglSurface)
+                            EGLSurface& eglPbuffer)
 {
-    const EGLint contextAttribs[] =
-    {
-        EGL_CONTEXT_CLIENT_VERSION, 3,
+    EGLint attribList[] = {
+        EGL_WIDTH, 512,
+        EGL_HEIGHT, 512,
+        EGL_LARGEST_PBUFFER, EGL_TRUE,
         EGL_NONE
     };
     display = eglGetDisplay ( EGL_DEFAULT_DISPLAY );
@@ -134,17 +136,18 @@ EGLBoolean initializeWindow(EGLNativeWindowType nativeWindow,
     printf("eglGetDisplay succ\n");
     const EGLint configAttribs[] =
       {
-         EGL_RED_SIZE,       5,
-         EGL_GREEN_SIZE,     6,
-         EGL_BLUE_SIZE,      5,
-         EGL_ALPHA_SIZE,     EGL_DONT_CARE,
-         EGL_DEPTH_SIZE,     EGL_DONT_CARE,
-         EGL_STENCIL_SIZE,   EGL_DONT_CARE,
-         EGL_SAMPLE_BUFFERS, 0,
-         // if EGL_KHR_create_context extension is supported, then we will use
-         // EGL_OPENGL_ES3_BIT_KHR instead of EGL_OPENGL_ES2_BIT in the attribute list
-         EGL_RENDERABLE_TYPE, GetContextRenderableType ( display ),
-         EGL_NONE
+        EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+        EGL_RED_SIZE,       5,
+        EGL_GREEN_SIZE,     6,
+        EGL_BLUE_SIZE,      5,
+        EGL_ALPHA_SIZE,     EGL_DONT_CARE,
+        EGL_DEPTH_SIZE,     EGL_DONT_CARE,
+        EGL_STENCIL_SIZE,   EGL_DONT_CARE,
+        EGL_SAMPLE_BUFFERS, 0,
+        // if EGL_KHR_create_context extension is supported, then we will use
+        // EGL_OPENGL_ES3_BIT_KHR instead of EGL_OPENGL_ES2_BIT in the attribute list
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
+        EGL_NONE
       };
 
 
@@ -162,13 +165,27 @@ EGLBoolean initializeWindow(EGLNativeWindowType nativeWindow,
         return EGL_FALSE;
     }
     printf("eglChooseConfig succ\n");
-    eglSurface = eglCreateWindowSurface(display, config,
-                            nativeWindow, NULL);
-    if (eglSurface == EGL_NO_SURFACE)
+    eglPbuffer = eglCreatePbufferSurface(display, config, attribList);
+    if (eglPbuffer == EGL_NO_SURFACE)
     {
+        switch (eglGetError()) {
+            case EGL_BAD_ALLOC:
+                break;
+            case EGL_BAD_CONFIG:
+                break;
+            case EGL_BAD_PARAMETER:
+                break;
+            case EGL_BAD_MATCH:
+                break;
+        }
         return EGL_FALSE;
     }
     printf("eglCreateWindowSurface succ\n");
+    const EGLint contextAttribs[] =
+    {
+        EGL_CONTEXT_CLIENT_VERSION, 3,
+        EGL_NONE
+    };
     EGLContext context = eglCreateContext(display, config,
         EGL_NO_CONTEXT, contextAttribs);
     if (context == EGL_NO_CONTEXT)
@@ -176,7 +193,7 @@ EGLBoolean initializeWindow(EGLNativeWindowType nativeWindow,
         return EGL_FALSE;
     }
     printf("eglCreateContext succ\n");
-    if (!eglMakeCurrent(display, eglSurface, eglSurface, context))
+    if (!eglMakeCurrent(display, eglPbuffer, eglPbuffer, context))
     {
         return EGL_FALSE;
     }
@@ -351,15 +368,25 @@ int main() {
 
     gettimeofday ( &t1 , &tz );
 
-    while(true)
-    {
-        gettimeofday(&t2, &tz);
-        deltatime = (float)(t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) * 1e-6);
-        t1 = t2;
+    //while(true)
+    //{
+    //    gettimeofday(&t2, &tz);
+    //    deltatime = (float)(t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) * 1e-6);
+    //    t1 = t2;
+        int size = 4 * height * width;
+        unsigned char *data2 = new unsigned char[size];
 
         Draw(programObject);
         eglSwapBuffers(eglDisplay, eglSurface);        
-    }
+        glReadPixels(0,0,width,height,GL_RGBA, GL_UNSIGNED_BYTE, data2);
+
+        FILE* f = fopen("m.txt", "w");
+        for (int i = 0; i < size; ++i) {
+            fprintf(f, "%d\n", (int)data2[i]);
+        }
+        fclose(f);
+
+    //}
 
     Shutdown(programObject);
 

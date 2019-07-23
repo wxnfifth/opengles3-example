@@ -7,10 +7,10 @@ find_package( OpenCV REQUIRED )
 find_package(X11)
 
 find_library( OPENGLES3_LIBRARY GLESv2 "OpenGL ES v3.0 library"
-	PATHS /opt/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRVFrame/Library/Linux_x86_64
+	PATHS /mnt/ficusspain/xiaoningwang/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRVFrame/Library/Linux_x86_64
 	NO_DEFAULT_PATH)
 find_library( EGL_LIBRARY EGL "EGL 1.4 library" 
-	PATHS /opt/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRVFrame/Library/Linux_x86_64
+	PATHS /mnt/ficusspain/xiaoningwang/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRVFrame/Library/Linux_x86_64
 	NO_DEFAULT_PATH)
 find_library(M_LIB m)
 

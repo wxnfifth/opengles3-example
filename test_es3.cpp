@@ -118,7 +118,7 @@ EGLBoolean WinCreate(EGLNativeWindowType& nativeWindow)
 }
 
 
-EGLBoolean initializeWindow(EGLNativeWindowType nativeWindow,
+EGLBoolean initializeWindow(//EGLNativeWindowType nativeWindow,
                             EGLDisplay& display,
                             EGLSurface& eglPbuffer)
 {
@@ -349,12 +349,12 @@ void Shutdown(GLuint programObject)
 }
 
 int main() {
-    EGLNativeWindowType nativeWindow;
-    bool rtn = WinCreate(nativeWindow);
-    printf("WinCreate rtn %d\n", rtn);
+    //EGLNativeWindowType nativeWindow;
+    //bool rtn = WinCreate(nativeWindow);
+    //printf("WinCreate rtn %d\n", rtn);
     EGLDisplay eglDisplay;
     EGLSurface eglSurface;
-    rtn = initializeWindow(nativeWindow, eglDisplay, eglSurface);
+    bool rtn = initializeWindow(eglDisplay, eglSurface);
     printf("initializeWindow rtn %d\n", rtn);
     GLuint programObject;
     rtn = Init(programObject);
